@@ -225,6 +225,72 @@ spec:
         # ... other environment variables
 ```
 
+## Docker Build
+
+### Local Build
+
+Build the Docker image locally:
+
+```bash
+# Build with default settings
+./docker-build.sh
+
+# Build with specific tag
+./docker-build.sh -t v1.0.0
+
+# Build for specific platform
+./docker-build.sh -p linux/arm64
+
+# Multi-platform build
+./docker-build.sh -p linux/amd64,linux/arm64
+```
+
+### GitHub Container Registry
+
+The repository includes a GitHub Actions workflow that automatically builds and pushes Docker images to GitHub Container Registry (GHCR) with multi-architecture support.
+
+**Features:**
+- ✅ Multi-architecture builds (AMD64, ARM64)
+- ✅ Automatic tagging based on branch/tag
+- ✅ Build caching for faster builds
+- ✅ Security scanning and attestation
+- ✅ Proper permissions for GHCR access
+
+**Triggers:**
+- Push to `main` or `develop` branches
+- Push tags (e.g., `v1.0.0`)
+- Pull requests to `main`
+
+**Image Tags:**
+- `latest` - Latest from main branch
+- `v1.0.0` - Semantic version tags
+- `main-abc1234` - Branch with commit SHA
+- `pr-123` - Pull request builds
+
+### Using the Container Image
+
+```bash
+# Pull from GHCR
+docker pull ghcr.io/your-username/knapscen-email-notifications:latest
+
+# Run with environment variables
+docker run --rm -it \
+  -e EMAIL_TEMPLATE=welcome \
+  -e USER_NAME="Test User" \
+  -e USER_EMAIL="test@example.com" \
+  -e COMPANY_NAME="Test Company" \
+  -e USER_ROLE="admin_user" \
+  -e SMTP_SERVER=mailhog \
+  -e SMTP_PORT=1025 \
+  -e SMTP_USER="" \
+  -e SMTP_PASS="" \
+  -e NATS_SERVER=nats://nats:4222 \
+  -e NATS_SUBJECT=email-notifications \
+  -e NATS_USER=test \
+  -e NATS_PASSWORD=test \
+  ghcr.io/your-username/knapscen-email-notifications:latest
+```
+
 ## File Structure
 
 ```
@@ -241,6 +307,10 @@ knapscen-email-notifications/
 ├── MAILHOG_DEPLOYMENT.md         # MailHog deployment guide
 ├── docker-compose.yml            # Docker Compose with MailHog
 ├── Dockerfile                    # Container image
+├── .dockerignore                 # Docker build context exclusions
+├── docker-build.sh              # Local Docker build script
+├── .github/workflows/           # GitHub Actions workflows
+│   └── docker-build.yml         # Docker build and push workflow
 ├── test_service.py              # Test suite
 ├── run_service.sh               # Service runner script
 └── README.md                    # This file
