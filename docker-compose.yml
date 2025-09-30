@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # MailHog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: knapscen-mailhog
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    environment:
+      - MH_STORAGE=maildir
+      - MH_MAILDIR_PATH=/tmp/maildir
+    volumes:
+      - mailhog-data:/tmp/maildir
+    networks:
+      - email-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # NATS server for event publishing
+  nats:
+    image: nats:2.9-alpine
+    container_name: knapscen-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # HTTP monitoring
+    command: ["--jetstream", "--http_port", "8222"]
+    healthcheck:
+      test: ["CMD", "nats", "server", "check", "jetstream"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - email-network
+
+  # Email notification service
+  email-service:
+    build: .
+    container_name: knapscen-email-service
+    environment:
+      # Email template type (welcome or marketing)
+      - EMAIL_TEMPLATE=${EMAIL_TEMPLATE:-welcome}
+      
+      # SMTP Configuration (using MailHog for testing)
+      - SMTP_SERVER=${SMTP_SERVER:-mailhog}
+      - SMTP_PORT=${SMTP_PORT:-1025}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      
+      # NATS Configuration
+      - NATS_SERVER=${NATS_SERVER:-nats://nats:4222}
+      - NATS_SUBJECT=${NATS_SUBJECT:-email-notifications}
+      - NATS_USER=${NATS_USER}
+      - NATS_PASSWORD=${NATS_PASSWORD}
+      
+      # Welcome template variables
+      - USER_NAME=${USER_NAME}
+      - USER_EMAIL=${USER_EMAIL}
+      - COMPANY_NAME=${COMPANY_NAME}
+      - USER_ROLE=${USER_ROLE}
+      
+      # Marketing template variables
+      - MARKETING_TEAM_EMAIL=${MARKETING_TEAM_EMAIL}
+      - USERS_JSON=${USERS_JSON}
+    depends_on:
+      mailhog:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - email-network
+    restart: "no"  # Run once and exit
+
+  # NATS monitoring (optional)
+  nats-monitor:
+    image: natsio/nats-box:latest
+    container_name: knapscen-nats-monitor
+    command: ["nats", "sub", "--server", "nats://nats:4222", "email-notifications"]
+    depends_on:
+      - nats
+    networks:
+      - email-network
+    profiles:
+      - monitoring
+
+volumes:
+  mailhog-data:
+    driver: local
+
+networks:
+  email-network:
+    driver: bridge
+
+# Example usage:
+# 1. Set environment variables in .env file
+# 2. Run: docker-compose up email-service
+# 3. For monitoring: docker-compose --profile monitoring up

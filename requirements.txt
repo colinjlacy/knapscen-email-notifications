@@ -1,0 +1,20 @@
+# Email Notification Service Dependencies
+# External dependencies only (built-in libraries are not listed)
+
+# Template engine for dynamic email content
+Jinja2>=3.1.0
+
+# NATS client for event publishing
+nats-py>=2.0.0
+
+# Additional utilities (optional)
+python-dotenv>=1.0.0  # For .env file support
+
+# Note: The following are built-in Python libraries and don't need installation:
+# - smtplib (SMTP client)
+# - email (email message handling)
+# - asyncio (async support)
+# - json (JSON handling)
+# - os (environment variables)
+# - logging (logging)
+# - typing (type hints)

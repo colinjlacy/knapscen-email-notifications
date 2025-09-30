@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Company Onboarded - Marketing Notification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #28a745;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .notification-title {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            font-size: 20px;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .company-info {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        .users-section {
+            margin: 30px 0;
+        }
+        .users-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        .users-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        .user-details {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        .user-email {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .user-role {
+            background-color: #007bff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .role-owner {
+            background-color: #dc3545;
+        }
+        .role-admin {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .role-generic {
+            background-color: #6c757d;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Knapscen</div>
+            <div class="notification-title">New Company Onboarded!</div>
+            <div class="company-name">{{ company_name }}</div>
+        </div>
+        
+        <div class="content">
+            <p>Dear Marketing Team,</p>
+            
+            <p>We're excited to announce that a new company has been successfully onboarded to our platform. This represents a great opportunity for engagement and growth!</p>
+            
+            <div class="company-info">
+                <h3 style="margin-top: 0; color: #28a745;">Company Details</h3>
+                <p><strong>Company Name:</strong> {{ company_name }}</p>
+                <p><strong>Onboarding Date:</strong> Today</p>
+            </div>
+            
+            <div class="users-section">
+                <div class="users-title">👥 User Accounts Created</div>
+                <div class="users-list">
+                    {% if users %}
+                        {% for user in users %}
+                        <div class="user-item">
+                            <div class="user-details">
+                                <div class="user-name">{{ user.name }}</div>
+                                <div class="user-email">{{ user.email }}</div>
+                            </div>
+                            <div class="user-role 
+                                {% if user.role == 'customer_account_owner' %}role-owner
+                                {% elif user.role == 'admin_user' %}role-admin
+                                {% else %}role-generic{% endif %}">
+                                {{ user.role.replace('_', ' ').title() }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align: center; color: #6c757d; font-style: italic;">No user data available</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if users %}
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ users | length }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ users | selectattr('role', 'equalto', 'customer_account_owner') | list | length }}</div>
+                    <div class="stat-label">Account Owners</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ users | selectattr('role', 'equalto', 'admin_user') | list | length }}</div>
+                    <div class="stat-label">Admin Users</div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="action-buttons">
+                <a href="#" class="btn btn-primary">View Company Profile</a>
+                <a href="#" class="btn btn-success">Start Outreach Campaign</a>
+            </div>
+            
+            <p><strong>Next Steps:</strong></p>
+            <ul>
+                <li>Review the company profile and user roles</li>
+                <li>Prepare welcome materials and onboarding resources</li>
+                <li>Schedule initial outreach and introduction calls</li>
+                <li>Set up monitoring for user engagement and adoption</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>Best regards,<br>The Knapscen Onboarding Team</p>
+            <p><small>This notification was automatically generated by the Knapscen system.</small></p>
+        </div>
+    </div>
+</body>
+</html>
