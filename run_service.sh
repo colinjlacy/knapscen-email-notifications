@@ -58,7 +58,10 @@ fi
 # Load .env file if it exists
 if [ -f ".env" ]; then
     print_status "Loading environment variables from .env file"
-    export $(cat .env | grep -v '^#' | xargs)
+    # Use a more robust method to load .env file
+    set -a  # automatically export all variables
+    source .env
+    set +a  # turn off automatic export
 fi
 
 # Check required environment variables
