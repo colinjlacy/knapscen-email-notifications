@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --user -r requirements.txt
+# Install Python dependencies to a specific location
+RUN pip install --no-cache-dir --target /app/deps -r requirements.txt
 
 # Final stage
 FROM python:3.11-slim
@@ -22,7 +22,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy Python dependencies from builder stage
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /app/deps /app/deps
 
 # Copy application files
 COPY email_notification_service.py .
@@ -36,12 +36,9 @@ RUN chmod +x run_service.sh
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Add local bin to PATH for user-installed packages
-ENV PATH=/root/.local/bin:$PATH
-
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/app/deps
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

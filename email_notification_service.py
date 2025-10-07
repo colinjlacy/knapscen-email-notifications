@@ -35,6 +35,9 @@ import json
 import smtplib
 import asyncio
 import logging
+import hashlib
+import uuid
+from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Dict, Any, List
@@ -125,15 +128,7 @@ class EmailNotificationService:
             return os.getenv('MARKETING_TEAM_EMAIL')
         else:
             raise ValueError(f"Unknown template type: {template_type}")
-    
-    def _get_nats_event_subject(self, template_type: str) -> str:
-        """Get NATS event subject based on template type."""
-        event_map = {
-            'welcome': 'welcome-email-sent',
-            'marketing': 'marketing-notified'
-        }
-        return event_map.get(template_type, 'email-sent')
-    
+      
     def send_email(self, template_type: str) -> bool:
         """Send email based on template type."""
         try:
@@ -169,32 +164,84 @@ class EmailNotificationService:
             logger.error(f"Failed to send email: {e}")
             return False
     
-    async def publish_nats_event(self, template_type: str) -> bool:
-        """Publish event to NATS subject."""
-        try:
-            # Create event data with all environment variables
-            event_data = {
-                'template_type': template_type,
-                'timestamp': asyncio.get_event_loop().time(),
-                'environment_variables': {
-                    'EMAIL_TEMPLATE': os.getenv('EMAIL_TEMPLATE'),
-                    'SMTP_SERVER': self.smtp_server,
-                    'SMTP_PORT': self.smtp_port,
-                    'SMTP_USER': self.smtp_user,
-                    'NATS_SERVER': self.nats_server,
-                    'NATS_SUBJECT': self.nats_subject,
-                    'USER_NAME': os.getenv('USER_NAME'),
-                    'USER_EMAIL': os.getenv('USER_EMAIL'),
-                    'COMPANY_NAME': os.getenv('COMPANY_NAME'),
-                    'USER_ROLE': os.getenv('USER_ROLE'),
-                    'MARKETING_TEAM_EMAIL': os.getenv('MARKETING_TEAM_EMAIL'),
-                    'USERS_JSON': os.getenv('USERS_JSON')
-                }
+    def _generate_cloud_event(self, template_type: str) -> Dict[str, Any]:
+        """Generate a CloudEvents-compliant event payload."""
+        # Get template-specific data
+        context = self._get_template_context(template_type)
+        
+        # Generate event type based on template
+        event_type_map = {
+            'welcome': 'disco.knapscen.email.welcome.sent',
+            'marketing': 'disco.knapscen.email.marketing.notified'
+        }
+        event_type = event_type_map.get(template_type, f'disco.knapscen.email.{template_type}.sent')
+        
+        ceSubject = ""
+
+        if template_type == 'welcome':
+            user_email = context.get('user_email') or context.get('marketing_team_email', 'unknown@example.com')
+            email_hash = hashlib.sha256(user_email.encode()).hexdigest()
+            ceSubject = f"welcome-email-sent-{email_hash[:8]}"
+        elif template_type == 'marketing':
+            customer_name = context.get('company_name')
+            customer_hash = hashlib.sha256(customer_name.encode()).hexdigest()
+            ceSubject = f"marketing-email-sent-{customer_hash[:8]}"
+        # Generate ID and subject from user email hash
+        
+        # Generate unique event ID
+        event_id = f"evt-email-{ceSubject[:8]}"
+        
+        # Generate subject (UUID-like format from email hash)
+        subject_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user_email))
+        
+        # Current timestamp in ISO format
+        current_time = datetime.now(timezone.utc).isoformat()
+        
+        # Prepare data payload based on template type
+        if template_type == 'welcome':
+            data = {
+                'customer_name': context.get('company_name'),
+                'user_name': context.get('user_name'),
+                'user_email': context.get('user_email'),
+                'user_role': context.get('user_role')
             }
+        elif template_type == 'marketing':
+            data = {
+                'customer_name': context.get('company_name'),
+                'marketing_team_email': context.get('marketing_team_email'),
+                'users': context.get('users', [])
+            }
+        else:
+            data = {
+                'template_type': template_type,
+                'customer_name': context.get('company_name'),
+                'user_email': context.get('user_email'),
+                'user_name': context.get('user_name')
+            }
+        
+        # Create CloudEvents payload
+        cloud_event = {
+            'specversion': '1.0',
+            'type': event_type,
+            'source': 'knapscen.disco',
+            'subject': ceSubject,
+            'id': event_id,
+            'time': current_time,
+            'datacontenttype': 'application/json',
+            'data': data
+        }
+        
+        return cloud_event
+
+    async def publish_nats_event(self, template_type: str) -> bool:
+        """Publish CloudEvents-compliant event to NATS subject."""
+        try:
+            # Generate CloudEvents payload
+            event_data = self._generate_cloud_event(template_type)
             
             # Connect to NATS and publish event
             nc = await nats.connect(servers=[self.nats_server], user=self.nats_user, password=self.nats_password)
-            event_subject = self._get_nats_event_subject(template_type)
+            event_subject = os.getenv('NATS_SUBJECT')
             
             await nc.publish(event_subject, json.dumps(event_data).encode())
             await nc.close()

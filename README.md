@@ -171,12 +171,38 @@ python email_notification_service.py
 
 ## NATS Events
 
-The service publishes events to NATS subjects after successful email sending:
+The service publishes CloudEvents-compliant events to NATS subjects after successful email sending:
 
-- **Welcome Email**: `welcome-email-sent`
-- **Marketing Notification**: `marketing-notified`
+- **Welcome Email**: `disco.knapscen.email.welcome.sent`
+- **Marketing Notification**: `disco.knapscen.email.marketing.notified`
 
-Event payload includes all environment variables used during execution.
+### CloudEvents Format
+
+Events follow the CloudEvents 1.0 specification with the following structure:
+
+```json
+{
+  "specversion": "1.0",
+  "type": "disco.knapscen.email.welcome.sent",
+  "source": "knapscen.disco",
+  "subject": "550e8400-e29b-41d4-a716-446655440000",
+  "id": "evt-email-001",
+  "time": "2025-10-04T12:02:00Z",
+  "datacontenttype": "application/json",
+  "data": {
+    "customer_name": "TechCorp Solutions",
+    "user_name": "John Smith",
+    "user_email": "john.smith@techcorp.com",
+    "user_role": "customer_account_owner"
+  }
+}
+```
+
+**Event Properties:**
+- `id`: Generated from user email hash (e.g., `evt-email-abc12345`)
+- `subject`: UUID generated from user email using UUID5
+- `time`: ISO 8601 timestamp in UTC
+- `data`: Template-specific payload with relevant user/company information
 
 ## Kubernetes Deployment
 
