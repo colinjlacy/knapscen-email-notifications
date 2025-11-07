@@ -224,7 +224,7 @@ class EmailNotificationService:
             'specversion': '1.0',
             'type': event_type,
             'source': 'knapscen.disco',
-            'subject': ceSubject,
+            'subject': hashlib.sha256((context.get('user_email') or '').encode()).hexdigest()[:8],
             'id': event_id,
             'time': current_time,
             'datacontenttype': 'application/json',
