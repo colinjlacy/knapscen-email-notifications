@@ -178,49 +178,11 @@
                 <h3 style="margin-top: 0; color: #28a745;">Company Details</h3>
                 <p><strong>Company Name:</strong> {{ company_name }}</p>
                 <p><strong>Onboarding Date:</strong> Today</p>
+                <p><strong>Subscription Tier:</strong> {{ subscription_tier }}</p>
             </div>
             
-            <div class="users-section">
-                <div class="users-title">👥 User Accounts Created</div>
-                <div class="users-list">
-                    {% if users %}
-                        {% for user in users %}
-                        <div class="user-item">
-                            <div class="user-details">
-                                <div class="user-name">{{ user.name }}</div>
-                                <div class="user-email">{{ user.email }}</div>
-                            </div>
-                            <div class="user-role 
-                                {% if user.role == 'customer_account_owner' %}role-owner
-                                {% elif user.role == 'admin_user' %}role-admin
-                                {% else %}role-generic{% endif %}">
-                                {{ user.role.replace('_', ' ').title() }}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p style="text-align: center; color: #6c757d; font-style: italic;">No user data available</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if users %}
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-number">{{ users | length }}</div>
-                    <div class="stat-label">Total Users</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ users | selectattr('role', 'equalto', 'customer_account_owner') | list | length }}</div>
-                    <div class="stat-label">Account Owners</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ users | selectattr('role', 'equalto', 'admin_user') | list | length }}</div>
-                    <div class="stat-label">Admin Users</div>
-                </div>
-            </div>
-            {% endif %}
-            
+
+                    
             <div class="action-buttons">
                 <a href="#" class="btn btn-primary">View Company Profile</a>
                 <a href="#" class="btn btn-success">Start Outreach Campaign</a>
@@ -228,10 +190,9 @@
             
             <p><strong>Next Steps:</strong></p>
             <ul>
-                <li>Review the company profile and user roles</li>
-                <li>Prepare welcome materials and onboarding resources</li>
-                <li>Schedule initial outreach and introduction calls</li>
-                <li>Set up monitoring for user engagement and adoption</li>
+                {% for action in next_actions %}
+                <li>{{ action }}</li>
+                {% endfor %}
             </ul>
         </div>
         

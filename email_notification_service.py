@@ -88,18 +88,12 @@ class EmailNotificationService:
                 'company_name': os.getenv('COMPANY_NAME'),
                 'user_role': os.getenv('USER_ROLE')
             }
-        elif template_type == 'marketing':
-            users_json = os.getenv('USERS_JSON', '[]')
-            try:
-                users = json.loads(users_json)
-            except json.JSONDecodeError as e:
-                logger.error(f"Invalid USERS_JSON format: {e}")
-                users = []
-            
+        elif template_type == 'marketing':        
             return {
                 'company_name': os.getenv('COMPANY_NAME'),
                 'marketing_team_email': os.getenv('MARKETING_TEAM_EMAIL'),
-                'users': users
+                'subscription_tier': os.getenv('SUBSCRIPTION_TIER'),
+                'next_actions': os.getenv('NEXT_ACTIONS')
             }
         else:
             raise ValueError(f"Unknown template type: {template_type}")
