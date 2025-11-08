@@ -93,7 +93,7 @@ class EmailNotificationService:
                 'company_name': os.getenv('COMPANY_NAME'),
                 'marketing_team_email': os.getenv('MARKETING_TEAM_EMAIL'),
                 'subscription_tier': os.getenv('SUBSCRIPTION_TIER'),
-                'next_actions': os.getenv('NEXT_ACTIONS')
+                'next_actions': json.loads(os.getenv('NEXT_ACTIONS'))
             }
         else:
             raise ValueError(f"Unknown template type: {template_type}")
