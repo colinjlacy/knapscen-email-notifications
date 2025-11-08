@@ -185,9 +185,6 @@ class EmailNotificationService:
         # Generate unique event ID
         event_id = f"evt-email-{ceSubject[:8]}"
         
-        # Generate subject (UUID-like format from email hash)
-        subject_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user_email))
-        
         # Current timestamp in ISO format
         current_time = datetime.now(timezone.utc).isoformat()
         
@@ -202,8 +199,7 @@ class EmailNotificationService:
         elif template_type == 'marketing':
             data = {
                 'customer_name': context.get('company_name'),
-                'marketing_team_email': context.get('marketing_team_email'),
-                'users': context.get('users', [])
+                'marketing_team_email': context.get('marketing_team_email')
             }
         else:
             data = {
@@ -218,7 +214,7 @@ class EmailNotificationService:
             'specversion': '1.0',
             'type': event_type,
             'source': 'knapscen.disco',
-            'subject': hashlib.sha256((context.get('user_email') or '').encode()).hexdigest()[:8],
+            'subject': ceSubject,
             'id': event_id,
             'time': current_time,
             'datacontenttype': 'application/json',
