@@ -175,11 +175,11 @@ class EmailNotificationService:
         if template_type == 'welcome':
             user_email = context.get('user_email') or context.get('marketing_team_email', 'unknown@example.com')
             email_hash = hashlib.sha256(user_email.encode()).hexdigest()
-            ceSubject = f"welcome-email-sent-{email_hash[:8]}"
+            ceSubject = email_hash[:8]
         elif template_type == 'marketing':
             customer_name = context.get('company_name')
             customer_hash = hashlib.sha256(customer_name.encode()).hexdigest()
-            ceSubject = f"marketing-email-sent-{customer_hash[:8]}"
+            ceSubject = customer_hash[:8]
         # Generate ID and subject from user email hash
         
         # Generate unique event ID
