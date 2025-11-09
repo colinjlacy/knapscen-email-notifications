@@ -183,7 +183,7 @@ class EmailNotificationService:
         # Generate ID and subject from user email hash
         
         # Generate unique event ID
-        event_id = f"evt-email-{ceSubject[:8]}"
+        event_id = str(uuid.uuid4())
         
         # Current timestamp in ISO format
         current_time = datetime.now(timezone.utc).isoformat()
@@ -198,6 +198,7 @@ class EmailNotificationService:
             }
         elif template_type == 'marketing':
             data = {
+                'subscription_tier': context.get('subscription_tier'),
                 'customer_name': context.get('company_name'),
                 'marketing_team_email': context.get('marketing_team_email')
             }
