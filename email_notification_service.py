@@ -183,7 +183,7 @@ class EmailNotificationService:
         # Generate ID and subject from user email hash
         
         # Generate unique event ID
-        event_id = str(uuid.uuid4())
+        event_id = str(uuid.uuid4())[:8]
         
         # Current timestamp in ISO format
         current_time = datetime.now(timezone.utc).isoformat()
